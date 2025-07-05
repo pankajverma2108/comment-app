@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 import { Comment } from '../comments/comment.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -12,6 +13,7 @@ export class User {
   @Column()
   username: string;
 
+ @Exclude() // Prevent password from being exposed in responses
   @Column()
   password: string;
 

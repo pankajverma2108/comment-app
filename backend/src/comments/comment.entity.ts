@@ -19,12 +19,13 @@ export class Comment {
   @TreeParent()
   parent: Comment;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' }) // << use UTC timestamp
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @DeleteDateColumn()
-  deletedAt: Date;
+  @DeleteDateColumn({ type: 'timestamptz', nullable: true })
+  deletedAt?: Date;
+
 }

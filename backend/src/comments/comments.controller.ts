@@ -1,16 +1,5 @@
 // src/comments/comments.controller.ts
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UseGuards,
-  Logger,
-} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards, Logger,} from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -59,5 +48,12 @@ export class CommentsController {
     const userId = req.user.userId;
     this.logger.log(`Fetching comments by user ${userId}`);
     return this.commentsService.findByUserId(userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id/restore')
+  async restore(@Param('id') id: string, @Req() req: RequestWithUser) {
+    this.logger.log(`User ${req.user.userId} is attempting to restore comment ${id}`);
+    return this.commentsService.restoreComment(id, req.user.userId);
   }
 }
