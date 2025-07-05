@@ -12,6 +12,7 @@ import { Comment } from './comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { User } from '../users/user.entity';
 import { plainToInstance } from 'class-transformer';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
@@ -20,9 +21,10 @@ export class CommentsService {
   constructor(
     @InjectRepository(Comment)
     private readonly commentRepo: TreeRepository<Comment>,
+  private readonly notificationsService: NotificationsService, 
   ) {}
 
-  async create(dto: CreateCommentDto, user: Partial<User>): Promise<Comment> {
+async create(dto: CreateCommentDto, user: Partial<User>): Promise<Comment> {
   const author = await this.commentRepo.manager.getRepository(User).findOne({
     where: { id: user.id },
   });
@@ -40,6 +42,7 @@ export class CommentsService {
   if (dto.parentId) {
     const parent = await this.commentRepo.findOne({
       where: { id: dto.parentId },
+      relations: ['author'], // needed for notifications
     });
 
     if (!parent) {
@@ -48,6 +51,11 @@ export class CommentsService {
     }
 
     comment.parent = parent;
+
+    // 🔔 Trigger notification if replying to someone else's comment
+    if (parent.author && parent.author.id !== author.id) {
+      await this.notificationsService.create(parent.author, comment.id);
+    }
   }
 
   const saved = await this.commentRepo.save(comment);

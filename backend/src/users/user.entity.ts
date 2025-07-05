@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 import { Comment } from '../comments/comment.entity';
 import { Exclude } from 'class-transformer';
+import { Notification } from '../notifications/notification.entity';
 
 @Entity()
 export class User {
@@ -22,4 +23,7 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.author)
   comments: Comment[];
+
+  @OneToMany(() => Notification, (n) => n.recipient)
+  notifications: Notification[];
 }

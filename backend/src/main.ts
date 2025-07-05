@@ -5,12 +5,18 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable global validation for DTOs
+  // Allow frontend running on port 3001
+  app.enableCors({
+    origin: 'http://localhost:3001',
+    credentials: true,
+  });
+
+  // Global validation for DTOs
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // strip properties that don’t have decorators
-      forbidNonWhitelisted: true, // throw if unknown properties are sent
-      transform: true, // auto-transform payloads to DTO instances
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
