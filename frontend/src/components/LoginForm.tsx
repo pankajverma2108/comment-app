@@ -4,48 +4,70 @@ import { useState } from 'react';
 import api from '../lib/api';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import Alert from './Alert';
 
 export default function LoginForm() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setSuccess('');
+
     try {
       const res = await api.post('/auth/login', form);
       const token = res.data.accessToken;
       Cookies.set('token', token);
-      router.push('/');
+
+      const { username } = res.data.user;
+      localStorage.setItem('username', username);
+
+      setSuccess('Login successful! Redirecting...');
+      setError('');
+      console.log('Login success, token set.');
+
+      setTimeout(() => {
+        router.push(`/${username}`);
+      }, 1500);
     } catch (err: any) {
+      console.error('Login error:', err);
+      setSuccess('');
       setError(err.response?.data?.message || 'Login failed');
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-xl font-bold">Login</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={form.email}
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
-        className="w-full px-4 py-2 border rounded bg-transparent"
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={form.password}
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
-        className="w-full px-4 py-2 border rounded bg-transparent"
-        required
-      />
-      {error && <p className="text-red-500">{error}</p>}
-      <button type="submit" className="w-full py-2 bg-black text-white rounded">
-        Login
-      </button>
-    </form>
+    <div className="container mt-5">
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-5 shadow-md rounded space-y-4">
+        <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
+
+        {success && <Alert type="success" message={success} />}
+        {error && <Alert type="error" message={error} />}
+
+        <input
+          type="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          className="form-control"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          className="form-control"
+          required
+        />
+
+        <button type="submit" className="btn btn-dark w-full">
+          Login
+        </button>
+      </form>
+    </div>
   );
 }

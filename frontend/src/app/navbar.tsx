@@ -20,14 +20,14 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full px-6 py-4 border-b shadow-sm bg-white flex justify-between items-center">
+    <nav className="w-full px-6 py-4 border-b shadow-sm bg-black flex justify-between items-center">
       <div className="flex gap-6 items-center">
-        <Link href="/" className="text-lg font-semibold text-gray-800 hover:text-black transition">
+        <Link href="/" className="text-lg font-semibold text-gray-800 hover:text-white transition">
           🏠 Home
         </Link>
 
         {authenticated && (
-          <Link href="/comments" className="text-gray-700 hover:text-black transition">
+          <Link href="/comments" className="text-gray-700 hover:text-white transition">
             💬 Comments
           </Link>
         )}

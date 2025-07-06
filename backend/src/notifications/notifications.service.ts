@@ -12,7 +12,7 @@ export class NotificationsService {
     private notificationRepo: Repository<Notification>,
   ) {}
 
-  async create(recipient: User, commentId: string) {
+    async create(recipient: User, commentId: string) {
     const commentRepo = this.notificationRepo.manager.getRepository(Comment);
     const comment = await commentRepo.findOne({ where: { id: commentId } });
 
@@ -28,10 +28,23 @@ export class NotificationsService {
     return this.notificationRepo.save(notification);
   }
 
+  async getUserByUsername(username: string) {
+    const userRepo = this.notificationRepo.manager.getRepository(User);
+    return userRepo.findOne({ where: { username } });
+  }
+
   async findForUser(userId: string) {
     return this.notificationRepo.find({
       where: { recipient: { id: userId } },
       order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findRecentForUser(userId: string, limit: number = 5) {
+    return this.notificationRepo.find({
+      where: { recipient: { id: userId } },
+      order: { createdAt: 'DESC' },
+      take: limit,
     });
   }
 
@@ -44,5 +57,26 @@ export class NotificationsService {
       await this.notificationRepo.save(notif);
     }
     return notif;
+  }
+
+  async fetchAndMarkAllReadByUsername(username: string) {
+    const userRepo = this.notificationRepo.manager.getRepository(User);
+    const user = await userRepo.findOne({ where: { username } });
+
+    if (!user) throw new Error('User not found');
+
+    const notifs = await this.notificationRepo.find({
+      where: { recipient: { id: user.id } },
+      order: { createdAt: 'DESC' },
+    });
+
+    for (const notif of notifs) {
+      if (!notif.read) {
+        notif.read = true;
+      }
+    }
+
+    await this.notificationRepo.save(notifs);
+    return notifs;
   }
 }

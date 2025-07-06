@@ -1,4 +1,6 @@
-import Navbar from "./navbar"; 
+// layout.tsx
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './globals.css';
 
 export const metadata = {
   title: 'Comment App',
@@ -8,9 +10,8 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-black antialiased">
-        <Navbar />
-        <main className="max-w-3xl mx-auto px-4 py-8">{children}</main>
+      <body className="min-h-screen bg-black text-white flex items-stretch">
+        {children}
       </body>
     </html>
   );

@@ -18,26 +18,28 @@ export default function CommentForm({
 }: CommentFormProps) {
   const [content, setContent] = useState(initialContent);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     try {
       if (commentId) {
-        // PATCH for editing
         await axios.patch(
           `${process.env.NEXT_PUBLIC_API_URL}/comments/${commentId}`,
           { content },
           { withCredentials: true }
         );
+        setSuccess('Comment updated successfully.');
       } else {
-        // POST for new comment or reply
         await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/comments`,
           { content, parentId },
           { withCredentials: true }
         );
+        setSuccess('Comment posted successfully.');
       }
 
       setContent('');
@@ -49,20 +51,19 @@ export default function CommentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
+      {error && <div className="alert alert-danger py-2 text-sm">{error}</div>}
+      {success && <div className="alert alert-success py-2 text-sm">{success}</div>}
+
       <textarea
         placeholder="Write a comment..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
-        className="w-full p-2 border rounded bg-transparent text-sm"
+        className="form-control bg-transparent text-sm"
         required
       />
-      {error && <p className="text-red-500 text-xs">{error}</p>}
       <div className="text-right">
-        <button
-          type="submit"
-          className="bg-black text-white px-4 py-1 text-sm rounded"
-        >
+        <button type="submit" className="btn btn-dark btn-sm">
           {commentId ? 'Update' : 'Post'}
         </button>
       </div>

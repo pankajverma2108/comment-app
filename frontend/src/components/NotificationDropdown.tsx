@@ -1,100 +1,64 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../lib/api';
-
-type Notification = {
-  id: string;
-  read: boolean;
-  createdAt: string;
-  comment: {
-    id: string;
-    content: string;
-    author: { username: string };
-  };
-};
+import Link from 'next/link';
 
 export default function NotificationDropdown() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
-    if (open) fetchNotifications();
-  }, [open]);
+    const fetchNotifications = async () => {
+      const username = localStorage.getItem('username');
+      if (!username) return;
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
+      try {
+        const res = await api.get(`/notifications/user/${username}/preview`);
+        setNotifications(res.data);
+      } catch (err) {
+        console.error('Error loading notifications:', err);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    fetchNotifications();
   }, []);
 
-  async function fetchNotifications() {
-    try {
-      const res = await api.get('/notifications');
-      setNotifications(res.data);
-    } catch (err) {
-      console.error('Failed to load notifications:', err);
-    }
-  }
-
-  async function markAsRead(id: string) {
-    try {
-      await api.patch(`/notifications/${id}/read`);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
-    } catch (err) {
-      console.error('Failed to mark notification as read:', err);
-    }
-  }
-
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative inline-block">
       <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="relative focus:outline-none"
+        onClick={() => setOpen(!open)}
+        className="btn btn-outline-secondary"
       >
         🔔
-        {notifications.some((n) => !n.read) && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
-            {notifications.filter((n) => !n.read).length}
-          </span>
-        )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded border z-50 max-h-96 overflow-y-auto">
-          <div className="p-3 border-b font-semibold">Notifications</div>
-          <ul className="divide-y">
-            {notifications.length === 0 && (
-              <li className="p-4 text-sm text-gray-500">No notifications</li>
+        <div className="absolute right-0 mt-2 w-72 bg-white text-black shadow-lg rounded z-50">
+          <div className="p-2">
+            {notifications.length === 0 ? (
+              <p className="text-sm text-center text-gray-500">
+                No recent notifications
+              </p>
+            ) : (
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className="text-sm border-b p-2 flex items-start gap-2"
+                >
+                  {n.read ? '✅' : '🆕'} <span>{n.comment.content}</span>
+                </div>
+              ))
             )}
-            {notifications.map((notif) => (
-              <li
-                key={notif.id}
-                className={`p-3 cursor-pointer hover:bg-gray-50 ${
-                  !notif.read ? 'bg-gray-100 font-semibold' : ''
-                }`}
-                onClick={() => {
-                  markAsRead(notif.id);
-                  window.location.href = '/comments'; // can add #comment-id in future
-                }}
-              >
-                <div className="text-sm">
-                  <span className="text-blue-600">{notif.comment.author.username}</span>{' '}
-                  replied: “{notif.comment.content.slice(0, 50)}...”
-                </div>
-                <div className="text-xs text-gray-500">
-                  {new Date(notif.createdAt).toLocaleString()}
-                </div>
-              </li>
-            ))}
-          </ul>
+          </div>
+          <div className="text-center border-t p-2">
+            <Link
+              href={`/${localStorage.getItem('username')}/notifications`}
+              className="text-blue-600 hover:underline text-sm"
+            >
+              View All
+            </Link>
+          </div>
         </div>
       )}
     </div>

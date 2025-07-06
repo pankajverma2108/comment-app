@@ -3,6 +3,7 @@
 import useSWR from 'swr';
 import CommentItem from './CommentItem';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 type CommentWithReplies = {
   id: string;
@@ -24,6 +25,15 @@ export default function CommentList() {
     }
   );
 
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const username = localStorage.getItem('username');
+      setCurrentUsername(username);
+    }
+  }, []);
+
   if (isLoading) return <p>Loading comments...</p>;
   if (error) return <p className="text-red-500">Failed to load comments.</p>;
 
@@ -33,6 +43,7 @@ export default function CommentList() {
         <CommentItem
           key={comment.id}
           comment={comment}
+          currentUsername={currentUsername ?? undefined}
           onReplySuccess={mutate} // auto-refresh after reply
         />
       ))}
