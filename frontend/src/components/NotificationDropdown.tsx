@@ -1,20 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../lib/api';
 import Link from 'next/link';
 
 export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [username, setUsername] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      const username = localStorage.getItem('username');
-      if (!username) return;
+    const user = localStorage.getItem('username');
+    if (!user) return;
 
+    setUsername(user);
+
+    const fetchNotifications = async () => {
       try {
-        const res = await api.get(`/notifications/user/${username}/preview`);
+        const res = await api.get(`/notifications/user/${user}/preview`);
         setNotifications(res.data);
       } catch (err) {
         console.error('Error loading notifications:', err);
@@ -24,8 +28,23 @@ export default function NotificationDropdown() {
     fetchNotifications();
   }, []);
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className="btn btn-outline-secondary"
@@ -34,30 +53,37 @@ export default function NotificationDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-72 bg-white text-black shadow-lg rounded z-50">
-          <div className="p-2">
+        <div className="absolute right-0 mt-2 w-72 bg-white text-black shadow-lg rounded z-50 border">
+          <div className="p-2 max-h-64 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-sm text-center text-gray-500">
+              <p className="text-sm text-center text-muted">
                 No recent notifications
               </p>
             ) : (
               notifications.map((n) => (
                 <div
                   key={n.id}
-                  className="text-sm border-b p-2 flex items-start gap-2"
+                  className="text-sm border-bottom p-2 d-flex gap-2 align-items-start"
                 >
-                  {n.read ? '✅' : '🆕'} <span>{n.comment.content}</span>
+                  <span className="me-1">
+                    {n.read ? '✅' : '🆕'}
+                  </span>
+                  <span className="text-dark">
+                    {n.comment?.content || '[Deleted]'}
+                  </span>
                 </div>
               ))
             )}
           </div>
-          <div className="text-center border-t p-2">
-            <Link
-              href={`/${localStorage.getItem('username')}/notifications`}
-              className="text-blue-600 hover:underline text-sm"
-            >
-              View All
-            </Link>
+          <div className="text-center border-top p-2">
+            {username && (
+              <Link
+                href={`/${username}/notifications`}
+                className="text-primary text-sm hover:underline"
+              >
+                View All
+              </Link>
+            )}
           </div>
         </div>
       )}

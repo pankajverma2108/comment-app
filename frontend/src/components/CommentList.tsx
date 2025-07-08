@@ -4,6 +4,8 @@ import useSWR from 'swr';
 import CommentItem from './CommentItem';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import CommentForm from './CommentForm';
+import api from '@/lib/api';
 
 type CommentWithReplies = {
   id: string;
@@ -13,15 +15,15 @@ type CommentWithReplies = {
   replies: CommentWithReplies[];
 };
 
-const fetcher = (url: string) =>
-  axios.get(url, { withCredentials: true }).then(res => res.data);
+// const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = (url: string) => api.get(url).then(res => res.data);
 
 export default function CommentList() {
   const { data: comments, error, isLoading, mutate } = useSWR<CommentWithReplies[]>(
     `${process.env.NEXT_PUBLIC_API_URL}/comments`,
     fetcher,
     {
-      refreshInterval: 10000, // Optional: revalidate every 10s
+      refreshInterval: 10000,
     }
   );
 
@@ -30,6 +32,7 @@ export default function CommentList() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const username = localStorage.getItem('username');
+      console.log('Current user from localStorage:', username);
       setCurrentUsername(username);
     }
   }, []);
@@ -44,9 +47,13 @@ export default function CommentList() {
           key={comment.id}
           comment={comment}
           currentUsername={currentUsername ?? undefined}
-          onReplySuccess={mutate} // auto-refresh after reply
+          onReplySuccess={mutate}
         />
       ))}
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-2">Post a Comment</h3>
+        <CommentForm onSuccess={mutate} />
+      </div>
     </div>
   );
 }

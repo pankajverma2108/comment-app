@@ -8,6 +8,7 @@ type CommentFormProps = {
   commentId?: string; // for editing existing comment
   initialContent?: string; // for pre-filling edit
   onSuccess?: () => void;
+  currentUsername?: string;
 };
 
 export default function CommentForm({
@@ -45,6 +46,7 @@ export default function CommentForm({
       setContent('');
       onSuccess?.();
     } catch (err: any) {
+      console.error('Comment error:', err);
       setError(err.response?.data?.message || 'Something went wrong');
     }
   }
@@ -59,7 +61,7 @@ export default function CommentForm({
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
-        className="form-control bg-transparent text-sm"
+        className="form-control bg-white text-black text-sm"
         required
       />
       <div className="text-right">

@@ -24,6 +24,7 @@ export default function LoginForm() {
 
       const { username } = res.data.user;
       localStorage.setItem('username', username);
+      localStorage.setItem('token', token); 
 
       setSuccess('Login successful! Redirecting...');
       setError('');
