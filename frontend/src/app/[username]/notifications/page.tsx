@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import api from '../../../lib/api';
 import Alert from '../../../components/Alert';
+import axios from 'axios';
 
 type NotificationItem = {
   id: string;
@@ -26,12 +27,16 @@ export default function NotificationsPage() {
 
     const fetchNotifications = async () => {
       try {
-        const res = await api.get(`/notifications/user/${username}`);
-        setNotifications(res.data);
-      } catch (err: any) {
-        console.error('Error fetching notifications:', err);
-        setError(err.response?.data?.message || 'Failed to load notifications');
-      } finally {
+        const res = await api.get(`/notifications/user/${username}`);
+        setNotifications(res.data);
+      } catch (err) { // <-- FIX THIS BLOCK
+        console.error('Error fetching notifications:', err);
+        if (axios.isAxiosError(err) && err.response) {
+          setError(err.response.data.message || 'Failed to load notifications');
+        } else {
+          setError('An unexpected error occurred.');
+        }
+      } finally {
         setLoading(false);
       }
     };

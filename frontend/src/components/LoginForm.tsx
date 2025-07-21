@@ -5,6 +5,7 @@ import api from '../lib/api';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import Alert from './Alert';
+import axios from 'axios';
 
 export default function LoginForm() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -33,10 +34,14 @@ export default function LoginForm() {
       setTimeout(() => {
         router.push(`/${username}`);
       }, 1500);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Login error:', err);
       setSuccess('');
-      setError(err.response?.data?.message || 'Login failed');
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || 'Login failed');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     }
   }
 

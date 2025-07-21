@@ -45,9 +45,13 @@ export default function CommentForm({
 
       setContent('');
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Comment error:', err);
-      setError(err.response?.data?.message || 'Something went wrong');
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || 'Something went wrong');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     }
   }
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import CommentForm from './CommentForm';
-import axios from 'axios';
+// import axios from 'axios';
 import { isWithin15Minutes } from '../utils/time';
 import api from '@/lib/api';
 
@@ -44,9 +44,8 @@ export default function CommentItem({
   }, [comment.createdAt]);
 
   const trimmedAuthor = comment.author?.username?.trim() ?? '';
-  const trimmedCurrent = currentUsername?.trim() ?? '';
-
-  const isAuthor = true;
+  const trimmedCurrent = currentUsername?.trim() ?? '';
+  const isAuthor = !!trimmedAuthor && !!trimmedCurrent && trimmedAuthor === trimmedCurrent;
 
   // console.log('Author match check:', {
   //   commentAuthor: trimmedAuthor,

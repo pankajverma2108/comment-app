@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import CommentItem from './CommentItem';
-import axios from 'axios';
+// import axios from 'axios';
 import { useEffect, useState } from 'react';
 import CommentForm from './CommentForm';
 import api from '@/lib/api';

@@ -8,9 +8,9 @@ import { DataSource } from 'typeorm';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Allow frontend running on port 3001
+  // Allow frontend running on port 5001
   app.enableCors({
-    origin: 'http://localhost:3001',
+    origin: 'http://localhost:5001',
     credentials: true,
   });
 
@@ -42,7 +42,7 @@ async function bootstrap() {
     }
   }
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 5000;
   await app.listen(port);
   Logger.log(`App running on http://localhost:${port}`);
 }

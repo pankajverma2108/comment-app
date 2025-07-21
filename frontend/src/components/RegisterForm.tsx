@@ -5,6 +5,7 @@ import api from '../lib/api';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import Alert from './Alert';
+import axios from 'axios';
 
 export default function RegisterForm() {
   const [form, setForm] = useState({ email: '', username: '', password: '' });
@@ -24,9 +25,13 @@ export default function RegisterForm() {
 
       setSuccess('Registration successful! Redirecting to login...');
       setTimeout(() => router.push('/login'), 2000);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.message || 'Registration failed');
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || 'Registration failed');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     }
   }
 

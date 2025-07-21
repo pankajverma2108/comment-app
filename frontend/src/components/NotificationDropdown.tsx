@@ -4,9 +4,18 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../lib/api';
 import Link from 'next/link';
 
+type NotificationPreview = {
+  id: string;
+  read: boolean;
+  comment: {
+    id: string;
+    content: string;
+  };
+};
+
 export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationPreview[]>([]);
   const [username, setUsername] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

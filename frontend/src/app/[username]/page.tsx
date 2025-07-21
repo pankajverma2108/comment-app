@@ -1,56 +1,49 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '../../lib/api';
 import NotificationDropdown from '../../components/NotificationDropdown';
-import Alert from '../../components/Alert';
 import CommentList from '@/components/CommentList';
 import CommentForm from '@/components/CommentForm';
+import axios from 'axios';
+
+// Define a type for the user object to avoid using 'any'
+interface User {
+  username: string;
+  email: string;
+  createdAt: string;
+}
 
 export default function UserProfilePage() {
   const { username } = useParams();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  
+  // Use the User type here. It can be User or null before it's fetched.
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState('');
-  const [commentContent, setCommentContent] = useState('');
-  const [comments, setComments] = useState<any[]>([]);
-  const [success, setSuccess] = useState('');
 
-  const fetchUser = async () => {
+  // Wrap fetchUser in useCallback so it doesn't change on every render
+  const fetchUser = useCallback(async () => {
     try {
       const res = await api.get(`/users/${username}`);
       setUser(res.data);
-    } catch (err: any) {
-      console.error('Error fetching user profile:', err);
-      setError(err.response?.data?.message || 'Failed to load profile');
-    }
-  };
-
-  const fetchComments = async () => {
-    try {
-      const res = await api.get('/comments');
-      setComments(res.data);
     } catch (err) {
-      console.error('Failed to fetch comments:', err);
+      console.error('Error fetching user profile:', err);
+      // Safely handle potential axios errors
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || 'Failed to load profile');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     }
-  };
-
-  const postComment = async () => {
-    try {
-      await api.post('/comments', { content: commentContent });
-      setCommentContent('');
-      setSuccess('Comment posted!');
-      fetchComments();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to post comment');
-    }
-  };
+  }, [username]); // It only needs to be re-created if the username changes
 
   useEffect(() => {
-    fetchUser();
-    fetchComments();
-  }, [username]);
+    if (username) {
+      fetchUser();
+    }
+  }, [username, fetchUser]); // Add fetchUser to the dependency array
 
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!user) return <div className="text-center mt-10">Loading profile...</div>;
@@ -85,7 +78,7 @@ export default function UserProfilePage() {
         </button>
       </div>
 
-      {/* Unified Comment Section with personalization */}
+      {/* The Comment components will handle their own data fetching and posting */}
       <div className="max-w-xl mx-auto mt-6 p-4 bg-white text-black rounded shadow">
         <h4 className="text-lg font-semibold mb-1">
           🧵 Comments by <span className="text-blue-600">@{user.username}</span>
@@ -97,8 +90,6 @@ export default function UserProfilePage() {
         <CommentForm onSuccess={() => {}} />
         <CommentList />
       </div>
-
-
     </div>
   );
 }
